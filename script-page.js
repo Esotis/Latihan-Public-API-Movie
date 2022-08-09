@@ -1,40 +1,26 @@
 const searchMovie = (keyword, type, videoType) => {
     $('#movie-list').empty()
-    paginationFunction(1)
-
-    const query = {
-        'key': 'AIzaSyDQNgtvgsWjBb4U9nI0V2EooVy24IXQe80',
-        'part': 'snippet',
-        'maxResults': '12',
-        'q': keyword,
-    }
-
-    console.log(keyword)
-    if (type !== '' && type) {
-        query['type'] = type
-        console.log(type)
-    }
-
-    if (videoType !== '' && videoType) {
-        query['videoType'] = videoType
-        console.log(videoType)
-    }
+    $('#pagination').empty()
 
     $.ajax({
-        url: 'https://youtube.googleapis.com/youtube/v3/search',
+        url: 'http://localhost:3000/search',
         type: 'get',
-        dataType: 'json',
-        data: query,
+        dataType: 'jsonp',
+        data: {
+            'keyword': keyword,
+            'type': type,
+            'videoType': videoType,
+        },
+        crossDomain: true,
         error: function () {
             console.log('Error')
         },
 
         success: function (result) {
-
             console.log('Berhasil')
-            let videos = result.items
+            const videos = result.filteredCollection
             let playButton = ''
-            console.log(videos)
+            console.log(result)
             $.each(videos, (i, data) => {
                 let id = ''
                 if (data.id.videoId) {
@@ -66,6 +52,7 @@ const searchMovie = (keyword, type, videoType) => {
             $('#inputType').val('any')
             $('#inputCategory').val('video')
 
+            paginationFunction(1, result.maxPagination)
 
         }
 
@@ -330,17 +317,15 @@ $('#header').on('click', '#detail-button', function () {
 })
 
 
-function paginationFunction(value) {
+function paginationFunction(value, allPages) {
 
-    if (value !== undefined) {
+    if (value !== undefined && allPages !== 0) {
         const currentPage = $('a.page-link.active').html()
         const destinationPage = Number(value)
-        const allPages = 100
-
         let content = ` <li class="page-item">
-    <a class="page-link" onclick="paginationFunction(${destinationPage - 1 == 0 ? '' : destinationPage - 1})">Previous</a>
+    <a class="page-link" onclick="paginationFunction(${destinationPage - 1 == 0 ? undefined : destinationPage - 1}, ${allPages})">Previous</a>
 </li>`
-        console.log('Testing')
+        console.log('Test')
         console.log(destinationPage)
         const beforePage = destinationPage - 2
         const afterPage = destinationPage + 2
@@ -356,22 +341,17 @@ function paginationFunction(value) {
                 liActive = `active`
             }
             content += `
-            <li class="page-item"><a class="page-link ${liActive}" onclick="paginationFunction(${page})" href="#">${page}</a></li>
+            <li class="page-item"><a class="page-link ${liActive}" onclick="paginationFunction(${page}, ${allPages})" href="#">${page}</a></li>
         `
         }
         content += ` <li class="page-item">
-    <a class="page-link" onclick="paginationFunction(${destinationPage + 1 > allPages ? '' : destinationPage + 1})" href="#">Next</a>
+    <a class="page-link" onclick="paginationFunction(${destinationPage + 1 > allPages ? undefined : destinationPage + 1}, ${allPages})" href="#">Next</a>
 </li>`
 
         $('#pagination').empty()
         $('#pagination').html(content)
     }
 }
-
-$('a.page-link').on('click', function () {
-
-    paginationFunction($(this).html())
-})
 
 $(document).ready(function () {
     searchMovie()
