@@ -52,7 +52,7 @@ const searchMovie = (keyword, type, videoType) => {
             $('#inputType').val('any')
             $('#inputCategory').val('video')
 
-            paginationFunction(1, result.maxPagination)
+            paginationFunction(1, result.maxPagination, "firstLoad")
 
         }
 
@@ -317,11 +317,11 @@ $('#header').on('click', '#detail-button', function () {
 })
 
 
-function paginationFunction(value, allPages) {
+function paginationFunction(value, allPages, status) {
+    const destinationPage = Number(value)
 
     if (value !== undefined && allPages !== 0) {
         const currentPage = $('a.page-link.active').html()
-        const destinationPage = Number(value)
         let content = ` <li class="page-item">
     <a class="page-link" onclick="paginationFunction(${destinationPage - 1 == 0 ? undefined : destinationPage - 1}, ${allPages})">Previous</a>
 </li>`
@@ -350,7 +350,54 @@ function paginationFunction(value, allPages) {
 
         $('#pagination').empty()
         $('#pagination').html(content)
+
+        if (status !== "firstLoad") {
+            $('#movie-list').empty()
+            $.ajax({
+                url: `http://localhost:3000/page/${destinationPage}`,
+                type: 'get',
+                dataType: 'jsonp',
+                data: {},
+                crossDomain: true,
+                error: function () {
+                    console.log('Error')
+                },
+                success: function (result) {
+                    console.log('Berhasil')
+                    const videos = result.filteredCollection
+                    let playButton = ''
+                    console.log(result)
+                    $.each(videos, (i, data) => {
+                        let id = ''
+                        if (data.id.videoId) {
+                            id = data.id.videoId
+                            playButton = `<a href="#" id="watch-button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#exampleModal" data-id=${id}><i class="bi bi-play-circle-fill"></i> Play</a>`
+                        }
+                        else if (data.id.playlistId) {
+                            id = data.id.playlistId
+                        }
+                        else if (data.id.channelId) {
+                            id = data.id.channelId
+                        }
+                        $('#movie-list').append(`
+                        <div class="col-md-3">
+                            <div class="card mb-3" style="width: 18rem;">
+                             <img src=${data.snippet.thumbnails.high.url} class="card-img-top" alt="image movie">
+                             <div class="card-body">
+                             <h5 class="card-title" id="movie-title">${data.snippet.title}</h5>
+                             <h6 class="card-subtitle mb-2 text-muted">${data.snippet.channelTitle}</h6>
+                             <a href="#" id="see-detail" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-id=${id} data-type=${data.id.kind}>See Detail</a>
+                             ${playButton}
+                             </div>
+                            </div>
+                        </div>
+                            `)
+                    })
+                }
+            })
+        }
     }
+
 }
 
 $(document).ready(function () {

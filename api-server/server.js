@@ -9,11 +9,10 @@ app.use(express.urlencoded({ extended: true }))
 
 app.get('/page/:destination', async (req, res) => {
     const nextPage = req.params.destination
-
+    const pagination = await nextPagination(nextPage, res)
 })
 
 app.get('/search', async (req, res) => {
-    console.log(req.query)
     const videos = await insertApiSearch(req.query, res)
 })
 

@@ -22,19 +22,17 @@ const insertApiSearch = async (data, res) => {
     const query = {
         'key': 'AIzaSyDQNgtvgsWjBb4U9nI0V2EooVy24IXQe80',
         'part': 'snippet',
-        'maxResults': '25',
+        'maxResults': '120',
         'q': keyword,
     }
 
     console.log(keyword)
     if (type !== '' && type) {
         query['type'] = type
-        console.log(type)
     }
 
     if (videoType !== '' && videoType) {
         query['videoType'] = videoType
-        console.log(videoType)
     }
 
     $.ajax({
@@ -51,11 +49,8 @@ const insertApiSearch = async (data, res) => {
             const limitPage = (currentPage * 12) - 1
             const insert = await collection.insertOne(result)
             console.log(insert)
-            const findCollection = await collection.findOne({
-                kind: "youtube#searchListResponse"
-            })
-            const maxPagination = Math.ceil(findCollection.items.length / 12)
-            const filteredCollection = findCollection.items.filter((arr, index) => {
+            const maxPagination = Math.ceil(result.items.length / 12)
+            const filteredCollection = result.items.filter((arr, index) => {
                 if (index >= skipPage && index <= limitPage) {
                     return true
                 }
@@ -68,8 +63,23 @@ const insertApiSearch = async (data, res) => {
     })
 }
 
-const nextPagination = () => {
+const nextPagination = async (nextPage, res) => {
+    const db = await client.db('youtube_api')
+    const collection = await db.collection('videos')
+    const skipPage = (nextPage - 1) * 12
+    const limitPage = (nextPage * 12) - 1
 
+    const findCollection = await collection.findOne({
+        kind: "youtube#searchListResponse"
+    })
+    const filteredCollection = findCollection.items.filter((arr, index) => {
+        if (index >= skipPage && index <= limitPage) {
+            return true
+        }
+    })
+    res.jsonp({
+        filteredCollection
+    })
 }
 
 module.exports = { insertApiSearch, nextPagination }
