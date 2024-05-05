@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb')
 const { JSDOM } = require("jsdom");
 const { window } = new JSDOM("");
 const $ = require('jquery')(window)
-const url = 'mongodb+srv://Jovan:jovan123@clustertesting.5iaxchf.mongodb.net/?retryWrites=true&w=majority'
+const url = 'mongodb+srv://coffins:inmrfnMHRpE5uK1U@cluster0.vcb4tbz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 const client = new MongoClient(url)
 
 client.connect()
